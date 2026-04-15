@@ -1,15 +1,21 @@
-#meta
+---
+name: "Library/QuickNoteReview"
+tags: meta/library
+---
 
 # Quick Notes Review
 
-A Space Lua plugin for reviewing and triaging quick notes stored in `Inbox/`.
+A [SilverBullet](https://silverbullet.md) v2 Space Lua library for reviewing and triaging quick notes stored under `Inbox/`.
 
-## Usage
+When viewing any page under `Inbox/`, three action buttons appear at the top:
 
-- Run the slash command `/review-notes` (or the command **Quick Notes: Review Oldest** from the command palette) to jump to the oldest note in `Inbox/`.
-- When viewing any page under `Inbox/`, three action buttons appear at the top:
-  **Delete quick note** · **Previous quick note** · **Next quick note**
-- Notes are ordered alphabetically by page name (which, for timestamped filenames, is chronological).
+**Delete quick note** · **Previous quick note** · **Next quick note**
+
+Run the command **Quick Notes: Review Oldest** from the command palette to jump to the oldest note in `Inbox/` and start walking through them.
+
+Notes are ordered alphabetically by page name (chronological if your filenames are timestamps).
+
+## Implementation
 
 ```space-lua
 -- priority: 10
@@ -97,7 +103,7 @@ function quickNotes.deleteCurrent()
   end
 end
 
--- Commands (also callable from the command palette).
+-- Commands (callable from the command palette).
 command.define {
   name = "Quick Notes: Review Oldest",
   run = quickNotes.reviewOldest
@@ -116,13 +122,6 @@ command.define {
 command.define {
   name = "Quick Notes: Previous",
   run = quickNotes.gotoPrev
-}
-
--- Slash command to start the review flow.
-slashCommand.define {
-  name = "review-notes",
-  description = "Jump to the oldest quick note in Inbox/",
-  run = quickNotes.reviewOldest
 }
 
 -- Top-of-page action buttons, shown only on pages under Inbox/.
