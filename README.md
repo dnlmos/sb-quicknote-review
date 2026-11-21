@@ -2,8 +2,6 @@
 
 A [SilverBullet](https://silverbullet.md) **v2 / edge** Space Lua library for reviewing, triaging, snoozing and deleting quick notes stored in an `Inbox/` folder.
 
-> Written by [Claude Code](https://claude.com/claude-code) (Anthropic's CLI for Claude) on behalf of the repo owner. The owner reviewed and published it but did not hand-write the code.
-
 ## What it does
 
 When you dump lots of one-line thoughts into an `Inbox/` folder (via SilverBullet's **Quick Note** command, `Ctrl-q q`), this library gives you a review loop:
@@ -31,15 +29,15 @@ snoozeCount: 2
 
 Snoozing follows classic spaced repetition: each snooze of the same note pushes it further out than the last one.
 
-| Snooze | Back in |
-|---|---|
-| 1st | 1 day |
-| 2nd | 3 days |
-| 3rd | 7 days |
-| 4th | 21 days |
+| Snooze         | Back in |
+| -------------- | ------- |
+| 1st            | 1 day   |
+| 2nd            | 3 days  |
+| 3rd            | 7 days  |
+| 4th            | 21 days |
 | 5th and beyond | 60 days |
 
-The idea: if you've reviewed a note a few times without deleting it, it's low-urgency and can fade into the background rather than demanding attention every day. If you'd rather have the opposite — a note that nags you *more* the more you dodge it (7d → 3d → 1d → 12h → 4h) — that's one config line, see [Configuration](#configuration).
+The idea: if you've reviewed a note a few times without deleting it, it's low-urgency and can fade into the background rather than demanding attention every day. If you'd rather have the opposite — a note that nags you _more_ the more you dodge it (7d → 3d → 1d → 12h → 4h) — that's one config line, see [Configuration](#configuration).
 
 State lives in the note's own frontmatter, not in a local key-value store, so snoozes sync with your space and follow you across devices.
 
@@ -68,22 +66,22 @@ To update later, run **Library: Update All**. To remove, use the Library Manager
 
 ## Usage
 
-| Action | Button | Command | Key |
-|---|---|---|---|
-| Jump to the oldest note due | — | **Quick Notes: Review** | `Ctrl-q r` |
-| Snooze (spaced repetition) | **Snooze** | **Quick Notes: Snooze** | `Ctrl-q s` |
-| Snooze for a delay you pick | **Snooze for…** | **Quick Notes: Snooze For** | `Ctrl-q f` |
-| Clear a snooze | — | **Quick Notes: Unsnooze** | `Ctrl-q u` |
-| Delete the note, move on | **Delete** | **Quick Notes: Delete Current** | `Ctrl-q x` |
-| Next note due | **Next ›** | **Quick Notes: Next** | `Ctrl-q n` |
-| Previous note due | **‹ Prev** | **Quick Notes: Previous** | `Ctrl-q p` |
-| Browse everything, due and snoozed | — | **Quick Notes: Queue** | `Ctrl-q l` |
+| Action                             | Button          | Command                         | Key        |
+| ---------------------------------- | --------------- | ------------------------------- | ---------- |
+| Jump to the oldest note due        | —               | **Quick Notes: Review**         | `Ctrl-q r` |
+| Snooze (spaced repetition)         | **Snooze**      | **Quick Notes: Snooze**         | `Ctrl-q s` |
+| Snooze for a delay you pick        | **Snooze for…** | **Quick Notes: Snooze For**     | `Ctrl-q f` |
+| Clear a snooze                     | —               | **Quick Notes: Unsnooze**       | `Ctrl-q u` |
+| Delete the note, move on           | **Delete**      | **Quick Notes: Delete Current** | `Ctrl-q x` |
+| Next note due                      | **Next ›**      | **Quick Notes: Next**           | `Ctrl-q n` |
+| Previous note due                  | **‹ Prev**      | **Quick Notes: Previous**       | `Ctrl-q p` |
+| Browse everything, due and snoozed | —               | **Quick Notes: Queue**          | `Ctrl-q l` |
 
 **Quick Notes: Queue** opens a picker listing every note due now, then the snoozed ones with when each comes back. It docks to a sidebar if you'd rather keep it open.
 
 The review bar only renders on pages under `Inbox/`, so it doesn't clutter the rest of your space. Being a view, it can be moved to the bottom of the page or closed from its hover menu.
 
-**Prev** / **Next** walk the *due* queue, skipping snoozed notes. If you land on a snoozed note anyway (from the queue picker, say), they fall back to walking every note so you can browse your way out.
+**Prev** / **Next** walk the _due_ queue, skipping snoozed notes. If you land on a snoozed note anyway (from the queue picker, say), they fall back to walking every note so you can browse your way out.
 
 After a delete or snooze, the plugin moves to the next note due, or the previous one if that was the last.
 
@@ -116,4 +114,4 @@ command.update { name = "Quick Notes: Snooze", key = "", mac = "" }
 
 ## Attribution
 
-Code written by [Claude Code](https://claude.com/claude-code). Commit messages include co-author attribution.
+Code written by [Claude Code](https://claude.com/claude-code)
