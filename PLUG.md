@@ -17,17 +17,17 @@ Run **Quick Notes: Review** (`Ctrl-q r`) to jump to the oldest note that's waiti
 
 **Snooze** is for notes you can't deal with right now. It writes a `snoozeUntil` stamp into the note's frontmatter and drops it out of the review queue until that time passes.
 
-Snoozing is deliberately *not* classic spaced repetition. Each snooze of the same note brings it back **sooner**, not later:
+Snoozing follows classic spaced repetition: each snooze of the same note pushes it further out than the last one, on the theory that if you've reviewed it a few times without acting, it's low-urgency and can fade into the background.
 
 | Snooze | Back in |
 |---|---|
-| 1st | 7 days |
+| 1st | 1 day |
 | 2nd | 3 days |
-| 3rd | 1 day |
-| 4th | 12 hours |
-| 5th and beyond | 4 hours |
+| 3rd | 7 days |
+| 4th | 21 days |
+| 5th and beyond | 60 days |
 
-A note you keep dodging nags you harder until you either act on it or delete it. Override the curve with `config.set("quickNotes.snoozeLadder", {…})` — see [[#Configuration]].
+Override the curve with `config.set("quickNotes.snoozeLadder", {…})` — see [[#Configuration]]. The reverse — a note that nags you *more* often the more you dodge it — is also one line there.
 
 ## Configuration
 
@@ -38,9 +38,10 @@ Put these in your `Library/Config` page. Both are optional.
 config.set("quickNotes.folder", "Inbox/")
 
 -- Delays, in seconds, for the 1st, 2nd, 3rd… snooze of the same note.
--- The last entry repeats forever. For classic (expanding) spaced repetition:
+-- The last entry repeats forever. For a "nag" curve instead -- each snooze
+-- of the same note brings it back sooner, until you deal with it:
 config.set("quickNotes.snoozeLadder", {
-  1 * 24 * 3600, 3 * 24 * 3600, 7 * 24 * 3600, 21 * 24 * 3600, 60 * 24 * 3600,
+  7 * 24 * 3600, 3 * 24 * 3600, 1 * 24 * 3600, 12 * 3600, 4 * 3600,
 })
 ```
 
@@ -57,15 +58,15 @@ command.update { name = "Quick Notes: Snooze", key = "", mac = "" }
 
 quickNotes = quickNotes or {}
 
--- The "nag" curve: each snooze of the same note brings it back sooner, so a
--- note you keep dodging ends up in your face. Overridable per space through
+-- Classic spaced repetition: each snooze of the same note pushes it further
+-- out than the last one. Overridable per space through
 -- config.set("quickNotes.snoozeLadder", {...}).
 local DEFAULT_LADDER = {
-  7 * 24 * 3600, -- 1st snooze: a week
-  3 * 24 * 3600, -- 2nd: three days
-  1 * 24 * 3600, -- 3rd: a day
-  12 * 3600,     -- 4th: twelve hours
-  4 * 3600,      -- 5th and beyond: four hours
+  1 * 24 * 3600,  -- 1st snooze: a day
+  3 * 24 * 3600,  -- 2nd: three days
+  7 * 24 * 3600,  -- 3rd: a week
+  21 * 24 * 3600, -- 4th: three weeks
+  60 * 24 * 3600, -- 5th and beyond: two months
 }
 
 -- Written quoted into frontmatter, so YAML keeps it a string, and it sorts
@@ -355,8 +356,8 @@ function quickNotes.deleteCurrent()
 end
 
 --- Snoozes the current note and moves on. Without `seconds`, the delay comes
---- from the ladder: the more often this note has been snoozed, the sooner it
---- comes back.
+--- from the ladder, indexed by how many times this note has been snoozed
+--- before (see quickNotes.ladder).
 function quickNotes.snoozeCurrent(seconds)
   local page = editor.getCurrentPage()
   if not requireNote(page) then
@@ -402,7 +403,8 @@ function quickNotes.snoozeCurrentFor()
 end
 
 --- Clears the snooze on the current note, putting it straight back in the
---- queue and resetting its nag counter.
+--- queue and resetting its snooze counter (so the next snooze starts over
+--- at the top of the ladder).
 function quickNotes.unsnoozeCurrent()
   local page = editor.getCurrentPage()
   if not requireNote(page) then
@@ -537,7 +539,7 @@ view.define {
       dom.div { class = "qn-status", dom.text(quickNotes.status(page)) },
       dom.div {
         class = "qn-actions",
-        barButton("Snooze", "Process later; each snooze brings it back sooner",
+        barButton("Snooze", "Process later; next snooze comes back further out",
           "Quick Notes: Snooze", true),
         barButton("Snooze for…", "Pick when this note comes back",
           "Quick Notes: Snooze For"),

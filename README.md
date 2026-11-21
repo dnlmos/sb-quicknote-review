@@ -18,7 +18,7 @@ When you dump lots of one-line thoughts into an `Inbox/` folder (via SilverBulle
 
 Notes are ordered by page name, which is chronological if your filenames are timestamps (e.g. `Inbox/2026-04-15/13-37-36`).
 
-## Snoozing: "process later" that gets louder
+## Snoozing: spaced repetition for your inbox
 
 **Snooze** writes a `snoozeUntil` stamp into the note's frontmatter and drops the note out of the review queue until that time passes:
 
@@ -29,17 +29,17 @@ snoozeCount: 2
 ---
 ```
 
-This is deliberately **not** classic spaced repetition. Each snooze of the same note brings it back **sooner**, not later:
+Snoozing follows classic spaced repetition: each snooze of the same note pushes it further out than the last one.
 
 | Snooze | Back in |
 |---|---|
-| 1st | 7 days |
+| 1st | 1 day |
 | 2nd | 3 days |
-| 3rd | 1 day |
-| 4th | 12 hours |
-| 5th and beyond | 4 hours |
+| 3rd | 7 days |
+| 4th | 21 days |
+| 5th and beyond | 60 days |
 
-The idea: a note you keep dodging is one you care about but won't finish. Rather than letting it fade away, it nags harder until you either act on it or delete it. If you'd rather have the classic expanding curve, that's one config line — see [Configuration](#configuration).
+The idea: if you've reviewed a note a few times without deleting it, it's low-urgency and can fade into the background rather than demanding attention every day. If you'd rather have the opposite — a note that nags you *more* the more you dodge it (7d → 3d → 1d → 12h → 4h) — that's one config line, see [Configuration](#configuration).
 
 State lives in the note's own frontmatter, not in a local key-value store, so snoozes sync with your space and follow you across devices.
 
@@ -71,7 +71,7 @@ To update later, run **Library: Update All**. To remove, use the Library Manager
 | Action | Button | Command | Key |
 |---|---|---|---|
 | Jump to the oldest note due | — | **Quick Notes: Review** | `Ctrl-q r` |
-| Snooze (nag curve) | **Snooze** | **Quick Notes: Snooze** | `Ctrl-q s` |
+| Snooze (spaced repetition) | **Snooze** | **Quick Notes: Snooze** | `Ctrl-q s` |
 | Snooze for a delay you pick | **Snooze for…** | **Quick Notes: Snooze For** | `Ctrl-q f` |
 | Clear a snooze | — | **Quick Notes: Unsnooze** | `Ctrl-q u` |
 | Delete the note, move on | **Delete** | **Quick Notes: Delete Current** | `Ctrl-q x` |
@@ -97,9 +97,10 @@ config.set("quickNotes.folder", "Inbox/")
 
 -- Delays, in seconds, for the 1st, 2nd, 3rd… snooze of the same note.
 -- The last entry repeats forever.
--- For classic (expanding) spaced repetition instead of the nag curve:
+-- For a "nag" curve instead -- each snooze brings the note back sooner,
+-- until you deal with it:
 config.set("quickNotes.snoozeLadder", {
-  1 * 24 * 3600, 3 * 24 * 3600, 7 * 24 * 3600, 21 * 24 * 3600, 60 * 24 * 3600,
+  7 * 24 * 3600, 3 * 24 * 3600, 1 * 24 * 3600, 12 * 3600, 4 * 3600,
 })
 ```
 
