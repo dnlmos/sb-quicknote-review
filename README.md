@@ -1,62 +1,113 @@
 # sb-quicknote-review
 
-A [SilverBullet](https://silverbullet.md) **v2** Space Lua library for quickly reviewing, triaging, and deleting quick notes stored in an `Inbox/` folder.
+A [SilverBullet](https://silverbullet.md) **v2 / edge** Space Lua library for reviewing, triaging, snoozing and deleting quick notes stored in an `Inbox/` folder.
 
 > Written by [Claude Code](https://claude.com/claude-code) (Anthropic's CLI for Claude) on behalf of the repo owner. The owner reviewed and published it but did not hand-write the code.
 
 ## What it does
 
-When you dump lots of one-line thoughts into an `Inbox/` folder (e.g. via SilverBullet's "Quick Note" command), this library gives you a simple review loop:
+When you dump lots of one-line thoughts into an `Inbox/` folder (via SilverBullet's **Quick Note** command, `Ctrl-q q`), this library gives you a review loop:
 
-1. From the command palette, run **Quick Notes: Review Oldest** to jump to the oldest quick note.
-2. On every page under `Inbox/`, three action buttons appear at the top:
+1. Run **Quick Notes: Review** (`Ctrl-q r`) to jump to the oldest note waiting for you.
+2. On every page under `Inbox/`, a review bar appears above the note:
 
-   **Delete quick note** · **Previous quick note** · **Next quick note**
-3. Walk through the notes, extract anything worth keeping, then delete.
+   **Snooze** · **Snooze for…** · **Delete** · **‹ Prev** · **Next ›**
 
-Notes are ordered alphabetically by page name, which is chronological if your filenames are timestamps (e.g. `Inbox/2026-04-15/13-37-36`).
+   with a status line — `Note 3 of 17 due · 4 snoozed · snoozed 2×, back in 3 days · snooze → in 1 day`.
+3. Act on the note and delete it, or snooze it and move on.
+
+Notes are ordered by page name, which is chronological if your filenames are timestamps (e.g. `Inbox/2026-04-15/13-37-36`).
+
+## Snoozing: "process later" that gets louder
+
+**Snooze** writes a `snoozeUntil` stamp into the note's frontmatter and drops the note out of the review queue until that time passes:
+
+```yaml
+---
+snoozeUntil: "2026-11-28 09:30"
+snoozeCount: 2
+---
+```
+
+This is deliberately **not** classic spaced repetition. Each snooze of the same note brings it back **sooner**, not later:
+
+| Snooze | Back in |
+|---|---|
+| 1st | 7 days |
+| 2nd | 3 days |
+| 3rd | 1 day |
+| 4th | 12 hours |
+| 5th and beyond | 4 hours |
+
+The idea: a note you keep dodging is one you care about but won't finish. Rather than letting it fade away, it nags harder until you either act on it or delete it. If you'd rather have the classic expanding curve, that's one config line — see [Configuration](#configuration).
+
+State lives in the note's own frontmatter, not in a local key-value store, so snoozes sync with your space and follow you across devices.
 
 ## Requirements
 
-- SilverBullet **v2** (Space Lua). This will not work on v1 — it uses the v2 Lua API (`command.define`, `event.listen { name = "hooks:renderTopWidgets" }`, etc.).
+- SilverBullet **v2 / edge**. This uses edge APIs: `view.define` with `dock = "page-top"` (the old `hooks:renderTopWidgets` is deprecated), `index.patchFrontmatter`, `index.extractFrontmatter`, `editor.filterBox`, and string refs for `editor.navigate`.
 
 ## Installation
 
 ### Recommended — built-in `Library: Install`
 
-SilverBullet v2 can install libraries directly from a URL and track them for updates.
-
 1. Open the command palette (`Ctrl-/` or `⌘-/`) and run **Library: Install**.
 2. When prompted for **URI**, paste:
 
    ```
-   https://github.com/johnhunt/sb-quicknote-review/blob/main/PLUG.md
+   https://github.com/dnlmos/sb-quicknote-review/blob/main/PLUG.md
    ```
-3. SilverBullet downloads the library, writes it to `Library/QuickNoteReview` in your space, and reloads. Done.
+3. SilverBullet downloads the library to `Library/QuickNoteReview` and reloads.
 
-To update later, run **Library: Update All** (or **Update** from the Library Manager). To remove, use the Library Manager's **Remove** button.
+To update later, run **Library: Update All**. To remove, use the Library Manager's **Remove** button.
 
 ### Alternative — copy the file manually
 
-1. Copy [`PLUG.md`](PLUG.md) into your space (anywhere under the space root works; `Library/QuickNoteReview.md` matches the convention).
-2. Run **System: Reload** (`Ctrl-Alt-R` / `⌃⌥R`) or refresh the browser tab.
+1. Copy [`PLUG.md`](PLUG.md) into your space as `Library/QuickNoteReview.md`.
+2. Run **System: Reload** (`Ctrl-Alt-R` / `⌃⌥R`).
 
 ## Usage
 
-| Action | How to trigger |
-|---|---|
-| Start review (jump to oldest Inbox note) | Command palette → **Quick Notes: Review Oldest** |
-| Delete current note, move on | **Delete quick note** button *or* command palette → **Quick Notes: Delete Current** |
-| Next note | **Next quick note** button *or* command palette → **Quick Notes: Next** |
-| Previous note | **Previous quick note** button *or* command palette → **Quick Notes: Previous** |
+| Action | Button | Command | Key |
+|---|---|---|---|
+| Jump to the oldest note due | — | **Quick Notes: Review** | `Ctrl-q r` |
+| Snooze (nag curve) | **Snooze** | **Quick Notes: Snooze** | `Ctrl-q s` |
+| Snooze for a delay you pick | **Snooze for…** | **Quick Notes: Snooze For** | `Ctrl-q f` |
+| Clear a snooze | — | **Quick Notes: Unsnooze** | `Ctrl-q u` |
+| Delete the note, move on | **Delete** | **Quick Notes: Delete Current** | `Ctrl-q x` |
+| Next note due | **Next ›** | **Quick Notes: Next** | `Ctrl-q n` |
+| Previous note due | **‹ Prev** | **Quick Notes: Previous** | `Ctrl-q p` |
+| Browse everything, due and snoozed | — | **Quick Notes: Queue** | `Ctrl-q l` |
 
-The action buttons only render when the current page starts with `Inbox/`, so they don't clutter other pages.
+**Quick Notes: Queue** opens a picker listing every note due now, then the snoozed ones with when each comes back. It docks to a sidebar if you'd rather keep it open.
 
-After deletion, the plugin navigates to the next Inbox note (or the previous, or `index` if the Inbox is empty).
+The review bar only renders on pages under `Inbox/`, so it doesn't clutter the rest of your space. Being a view, it can be moved to the bottom of the page or closed from its hover menu.
 
-## Customisation
+**Prev** / **Next** walk the *due* queue, skipping snoozed notes. If you land on a snoozed note anyway (from the queue picker, say), they fall back to walking every note so you can browse your way out.
 
-The library assumes your quick notes live under `Inbox/`. If you use a different prefix, edit the two `string.startsWith(..., "Inbox/")` checks in `PLUG.md`.
+After a delete or snooze, the plugin moves to the next note due, or the previous one if that was the last.
+
+## Configuration
+
+Both keys are optional. Put them in your `Library/Config` page:
+
+```lua
+-- Where quick notes live (trailing slash optional)
+config.set("quickNotes.folder", "Inbox/")
+
+-- Delays, in seconds, for the 1st, 2nd, 3rd… snooze of the same note.
+-- The last entry repeats forever.
+-- For classic (expanding) spaced repetition instead of the nag curve:
+config.set("quickNotes.snoozeLadder", {
+  1 * 24 * 3600, 3 * 24 * 3600, 7 * 24 * 3600, 21 * 24 * 3600, 60 * 24 * 3600,
+})
+```
+
+To drop a key binding you'd rather keep for something else:
+
+```lua
+command.update { name = "Quick Notes: Snooze", key = "", mac = "" }
+```
 
 ## License
 
@@ -64,4 +115,4 @@ The library assumes your quick notes live under `Inbox/`. If you use a different
 
 ## Attribution
 
-Code written by [Claude Code](https://claude.com/claude-code) on model Claude Opus 4.6. Commit messages include co-author attribution.
+Code written by [Claude Code](https://claude.com/claude-code). Commit messages include co-author attribution.
